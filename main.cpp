@@ -54,7 +54,7 @@ void Logger::setFormat()
 
 string Logger::generateMessage(const string &message, const string &prior)
 {
-    ofstream f(this->fileName);
+    ofstream f(this->fileName, ios::app);
 
     time_t now = time(0);
     tm *ltm = localtime(&now);
@@ -73,7 +73,7 @@ string Logger::generateMessage(const string &message, const string &prior)
         str = regex_replace(str, rx, replacements[i]);
     }
 
-    f << str;
+    f << str << endl;
     f.close();
 
     return str;
