@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2020.2.1\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\cp_labs.dir/objects.a
+D:\win\bin\ar.exe cr CMakeFiles\cp_labs.dir/objects.a @CMakeFiles\cp_labs.dir\objects1.rsp
+D:\win\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\cp_labs.dir/objects.a -Wl,--no-whole-archive  -o cp_labs.exe -Wl,--out-implib,libcp_labs.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\cp_labs.dir\linklibs.rsp
