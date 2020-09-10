@@ -12,6 +12,8 @@ public:
     void printError(const string &text);
     void printDebug(const string &text);
     void printTrace(const string &text);
+
+private:
     string generateMessage(const string &message, const string &prior);
 };
 
@@ -24,12 +26,16 @@ void Logger::printError(const string &text)
 
 void Logger::printDebug(const string &text)
 {
-    cout << text;
+    string result = this->generateMessage(text, "Debug");
+
+    cout << "Formated: " << result << endl;
 }
 
 void Logger::printTrace(const string &text)
 {
-    cout << text;
+    string result = this->generateMessage(text, "Trace");
+
+    cout << "Formated: " << result << endl;
 }
 
 void Logger::setFormat()
