@@ -1,6 +1,7 @@
 #include <regex>
 #include <iostream>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -8,10 +9,15 @@ class Logger
 {
 public:
     string format = "-prior- | %data% %%time%% --message--";
+    string fileName;
     void setFormat();
     void printError(const string &text);
     void printDebug(const string &text);
     void printTrace(const string &text);
+
+    Logger(const string& file) {
+        fileName = file;
+    }
 
 private:
     string generateMessage(const string &message, const string &prior);
@@ -21,21 +27,21 @@ void Logger::printError(const string &text)
 {
     string result = this->generateMessage(text, "Error");
 
-    cout << "Formated: " << result << endl;
+    cout <<  result << endl;
 }
 
 void Logger::printDebug(const string &text)
 {
     string result = this->generateMessage(text, "Debug");
 
-    cout << "Formated: " << result << endl;
+    cout << result << endl;
 }
 
 void Logger::printTrace(const string &text)
 {
     string result = this->generateMessage(text, "Trace");
 
-    cout << "Formated: " << result << endl;
+    cout << result << endl;
 }
 
 void Logger::setFormat()
@@ -48,6 +54,8 @@ void Logger::setFormat()
 
 string Logger::generateMessage(const string &message, const string &prior)
 {
+    ofstream f(this->fileName);
+
     time_t now = time(0);
     tm *ltm = localtime(&now);
 
@@ -65,15 +73,18 @@ string Logger::generateMessage(const string &message, const string &prior)
         str = regex_replace(str, rx, replacements[i]);
     }
 
+    f << str;
+    f.close();
+
     return str;
 }
 
 int main()
 {
-    Logger logger;
+    Logger logger("Log.txt");
     logger.printError("lol it,s Error");
     logger.setFormat();
-    logger.printError("lol it,s Error");
+    logger.printError("lol it,s new Error");
 
     return 0;
 }
