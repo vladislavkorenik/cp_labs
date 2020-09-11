@@ -20,7 +20,7 @@ public:
     }
 
 private:
-    string generateMessage(const string &message, const string &prior);
+    string generateMessage(const string &message, const string &prior) const;
 };
 
 void Logger::printError(const string &text)
@@ -52,7 +52,7 @@ void Logger::setFormat()
     cout << "Your current format is: " << this->format << endl;
 }
 
-string Logger::generateMessage(const string &message, const string &prior)
+string Logger::generateMessage(const string &message, const string &prior) const
 {
     ofstream f(this->fileName, ios::app);
 
@@ -81,10 +81,19 @@ string Logger::generateMessage(const string &message, const string &prior)
 
 int main()
 {
+    string text = "some message";
+
     Logger logger("Log.txt");
-    logger.printError("lol it,s Error");
+
+    logger.printError(text);
+    logger.printDebug(text);
+    logger.printTrace(text);
+
     logger.setFormat();
-    logger.printError("lol it,s new Error");
+
+    logger.printError(text);
+    logger.printDebug(text);
+    logger.printTrace(text);
 
     return 0;
 }
