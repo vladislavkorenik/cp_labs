@@ -8,18 +8,19 @@ using namespace std;
 class Logger
 {
 public:
-    string format = "-prior- | %data% %%time%% --message--";
-    string fileName;
     void setFormat();
     void printError(const string &text);
     void printDebug(const string &text);
     void printTrace(const string &text);
 
-    Logger(const string& file) {
+    Logger(const string &file)
+    {
         fileName = file;
     }
 
 private:
+    string format = "-prior- | %data% %%time%% --message--";
+    string fileName;
     string generateMessage(const string &message, const string &prior) const;
 };
 
@@ -27,7 +28,7 @@ void Logger::printError(const string &text)
 {
     string result = this->generateMessage(text, "Error");
 
-    cout <<  result << endl;
+    cout << result << endl;
 }
 
 void Logger::printDebug(const string &text)
