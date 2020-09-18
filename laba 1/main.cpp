@@ -62,12 +62,12 @@ string Logger::generateMessage(const string &message, const string &prior) const
 
     string str = this->format;
 
-    string tags[] = {"-prior-", "%data%", "%%time%%", "--message--"};
+    array<string, 4> tags = {"-prior-","%data%", "%%time%%", "--message--"};
     string data = to_string(ltm->tm_mday) + "." + to_string(1 + ltm->tm_mon) + "." + to_string(1900 + ltm->tm_year);
     string time = to_string(ltm->tm_hour) + ":" + to_string(ltm->tm_min) + ":" + to_string(ltm->tm_sec);
-    string replacements[] = {prior, data, time, message};
+    array<string, 4> replacements = {prior, data, time, message};
 
-    for (int i = 0; i < sizeof(tags) / sizeof(*tags); i++)
+    for (int i = 0; i < tags.size(); i++)
     {
         regex rx(tags[i]);
 
