@@ -1,0 +1,9 @@
+Error | 18.9.2020 16:28:7 some message
+Debug | 18.9.2020 16:28:7 some message
+Trace | 18.9.2020 16:28:7 some message
+Error | 18.9.2020 16:28:55 some message
+Debug | 18.9.2020 16:28:55 some message
+Trace | 18.9.2020 16:28:55 some message
+Error
+Debug
+Trace

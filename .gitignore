@@ -1,2 +1,6 @@
 .vscode
+*.json
 *.exe
+*.a
+*.o
+*.dll
