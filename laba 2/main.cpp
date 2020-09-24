@@ -9,7 +9,7 @@ int main()
 {
     string text = "some message";
 
-    Logger logger("Log.txt");
+    Logger logger("d:/cp_labs/laba 2/Test1","d:/cp_labs/laba 2/Test2");
 
     logger.printError(text);
     logger.printDebug(text);
@@ -21,5 +21,6 @@ int main()
     logger.printDebug(text);
     logger.printTrace(text);
 
+    system("pause");
     return 0;
 }

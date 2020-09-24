@@ -4,8 +4,10 @@
 #include <ctime>
 #include <fstream>
 #include <array>
+#include <filesystem>
 
 using namespace std;
+namespace fs = std::filesystem;
 
 #ifndef LOGGER_LIB_H
 #define LOGGER_LIB_H
@@ -33,12 +35,16 @@ public:
     void printDebug(const std::string &text);
     void printTrace(const std::string &text);
 
-    Logger(const std::string &file);
+    Logger(const string &sDir, const string &cDir);
 
 private:
     std::string format = "-prior- | %data% %%time%% --message--";
-    std::string fileName;
+    std::string searchDir;
+    std::string copyToDir;
+    bool dirCreated = true;
     std::string generateMessage(const std::string &message, const std::string &prior);
+    bool writingMessageToFile(const std::string &message);
+    bool existingDirectoryCheck(const string &path);
 };
 
 #endif
