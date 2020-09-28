@@ -5,6 +5,7 @@
 #include <fstream>
 #include <array>
 #include <filesystem>
+#include <Windows.h>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -47,4 +48,11 @@ private:
     bool existingDirectoryCheck(const string &path);
 };
 
+
+extern "C" 
+{
+    LOGGER_LIB Logger* createLoggerObject(const string &sDir, const string &cDir);
+};
+
+typedef Logger* (*CREATE_LOGGER) (const string &sDir, const string &cDir);
 #endif

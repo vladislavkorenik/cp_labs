@@ -6,6 +6,11 @@ Logger::Logger(const string &sDir, const string &cDir)
     copyToDir = cDir;
 }
 
+LOGGER_LIB Logger* createLoggerObject(const string &sDir, const string &cDir)
+{
+    return new Logger(sDir, cDir);
+}
+
 void Logger::printError(const string &text)
 {
     string result = generateMessage(text, "Error");
@@ -86,8 +91,9 @@ bool Logger::writingMessageToFile(const std::string &message)
 {
     string extension = ".txt";
     dirCreated = existingDirectoryCheck(searchDir);
-    
-    if(dirCreated) {
+
+    if (dirCreated)
+    {
         dirCreated = existingDirectoryCheck(copyToDir);
     }
 
