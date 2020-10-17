@@ -1,7 +1,9 @@
 #include <regex>
-#include <iostream>
+#include <array>
 #include <ctime>
+#include <math.h>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -112,7 +114,10 @@ double calculateConsistently(int &x, int &n, Logger logger)
 
 //F(X, N) = ΣNI=1 1/(ΣNJ=I (J + (X + J)1/7)/(2IJ − 1))
 
-double calculateParallel(int &x, int &n) {}
+double calculateParallel(int &x, int &n)
+{
+    return 0;
+}
 
 int main()
 {
@@ -120,13 +125,11 @@ int main()
 
     Logger logger("Log.txt");
 
-    cout << "Input n\n"
-         << endl;
+    cout << "Input n:" << endl;
 
     cin >> n;
 
-    cout << "Input x\n"
-         << endl;
+    cout << "Input x:" << endl;
 
     cin >> x;
 
