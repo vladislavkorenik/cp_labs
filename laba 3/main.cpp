@@ -87,7 +87,7 @@ string Logger::generateMessage(const string &message, const string &prior) const
     return str;
 }
 
-double calculateFunc(int &x, int &i, int &j)
+double calculateFunc(int &x, int &i, int j)
 {
     return (j + pow(x + j, 1 / 7)) / (2 * i * j - 1);
 }
@@ -118,32 +118,29 @@ void calculateConsistently(int &x, int &n, Logger logger)
 void calculateParallel(int &x, int &n, Logger logger)
 {
     double result;
-
     int loopCount;
 
     for (int i = 1; i <= n; i++)
     {
         double intermediateResult;
         int j = i;
+
         while (j <= n)
         {
+            if (n - j >= MAX_CPU_COUNT)
+            {
+                loopCount = MAX_CPU_COUNT;
+            }
+            else
+            {
+                loopCount = n - j;
+            }
+
             vector<thread> ths;
 
-            for (int k = 0; k < loopCount; k++)
+            for (int k = 0; k <= loopCount; k++)
             {
-                if (n - j >= MAX_CPU_COUNT)
-                {
-                    loopCount = MAX_CPU_COUNT;
-                }
-                else
-                {
-                    loopCount = n - j;
-                }
-
-                cout << "loopCount " << loopCount << endl;
-
-                ths.push_back(thread([&x, &i, &j, &intermediateResult]() {
-                    cout << j << endl;
+                ths.push_back(thread([&intermediateResult, j, &x, &i]() {
                     double resPart = calculateFunc(x, i, j);
 
                     intermediateResult += resPart;
@@ -153,7 +150,7 @@ void calculateParallel(int &x, int &n, Logger logger)
             }
 
             for (auto &th : ths)
-                th.detach();
+                th.join();
         }
 
         result += double(1 / intermediateResult);
