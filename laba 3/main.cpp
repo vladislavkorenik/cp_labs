@@ -121,31 +121,29 @@ void calculateParallel(int &x, int &n, Logger logger)
 
     int loopCount;
 
-    if (n > MAX_CPU_COUNT)
-    {
-        loopCount = MAX_CPU_COUNT;
-    }
-    else
-    {
-        loopCount = n;
-    }
-
     for (int i = 1; i <= n; i++)
     {
         double intermediateResult;
-
-        for (int j = i; j <= n; j++)
+        int j = i;
+        while (j <= n)
         {
             vector<thread> ths;
 
             for (int k = 0; k < loopCount; k++)
             {
-                if (j >= n)
+                if (n - j >= MAX_CPU_COUNT)
                 {
-                    break;
+                    loopCount = MAX_CPU_COUNT;
+                }
+                else
+                {
+                    loopCount = n - j;
                 }
 
-                ths.push_back(thread([&]() {
+                cout << "loopCount " << loopCount << endl;
+
+                ths.push_back(thread([&x, &i, &j, &intermediateResult]() {
+                    cout << j << endl;
                     double resPart = calculateFunc(x, i, j);
 
                     intermediateResult += resPart;
