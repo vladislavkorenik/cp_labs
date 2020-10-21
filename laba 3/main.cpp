@@ -117,7 +117,6 @@ void calculateConsistently(int &x, int &n, Logger logger)
 
 void calculateParallel(int &x, int &n, Logger logger)
 {
-    cout << "TEST" << endl;
     double result;
 
     for (int i = 1; i <= n; i++)
@@ -183,25 +182,25 @@ int main()
     cout << "Input x: ";
     cin >> x;
 
-    time(&start);
+    start = clock();
 
     calculateConsistently(x, n, logger);
 
-    time(&end);
+    end = clock();
 
     seconds = difftime(end, start);
 
-    cout << "Consistently seconds: " << seconds << endl;
+    cout << "Consistently milliseconds: " << seconds << "ms" << endl;
 
-    time(&start);
+    start = clock();
 
     calculateParallel(x, n, logger);
 
-    time(&end);
+    end = clock();
 
     seconds = difftime(end, start);
 
-    cout << "Parallel seconds: " << seconds << endl;
+    cout << "Parallel milliseconds: " << seconds << "ms" << endl;
 
     return 0;
 }
