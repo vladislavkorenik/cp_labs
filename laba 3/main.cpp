@@ -4,6 +4,8 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
+#include <thread>
+#include <time.h>
 
 using namespace std;
 
@@ -82,20 +84,22 @@ string Logger::generateMessage(const string &message, const string &prior) const
     return str;
 }
 
+const int MAX_CPU_COUNT = 4;
+
 double calculateFunc(int &x, int &i, int &j)
 {
     return (j + pow(x + j, 1 / 7)) / (2 * i * j - 1);
 }
 
-double calculateConsistently(int &x, int &n, Logger logger)
+void calculateConsistently(int &x, int &n, Logger logger)
 {
     double result;
 
-    for (int i = 0; i < n; i++)
+    for (int i = 1; i <= n; i++)
     {
         double intermediateResult;
 
-        for (int j = 0; j < n; j++)
+        for (int j = i; j <= n; j++)
         {
             double resPart = calculateFunc(x, i, j);
 
@@ -109,19 +113,70 @@ double calculateConsistently(int &x, int &n, Logger logger)
 
     logger.printTrace(message);
 
-    return result;
+    cout << result << endl;
 }
 
-//F(X, N) = ΣNI=1 1/(ΣNJ=I (J + (X + J)1/7)/(2IJ − 1))
-
-double calculateParallel(int &x, int &n)
+void calculateParallel(int &x, int &n, Logger logger)
 {
-    return 0;
+    cout << "TEST" << endl;
+    double result;
+
+    for (int i = 1; i <= n; i++)
+    {
+        double intermediateResult;
+
+        for (int j = i; j <= n; j += MAX_CPU_COUNT)
+        {
+            int loopCount = j - n;
+
+            if (n > MAX_CPU_COUNT)
+            {
+                loopCount = MAX_CPU_COUNT;
+            }
+            else
+            {
+                loopCount = n;
+            }
+
+            // cout << loopCount << endl;
+
+            std::vector<std::thread> ths;
+
+            for (int k = 0; k < loopCount; k++)
+            {
+                ths.push_back(std::thread([&intermediateResult, &x, &i, &j]() {
+                    double resPart = calculateFunc(x, i, j);
+
+                    intermediateResult += resPart;
+                }));
+                // thread tr([&intermediateResult, &x, &i, &j]() {
+                //     double resPart = calculateFunc(x, i, j);
+
+                //     intermediateResult += resPart;
+                // });
+
+                // tr.detach();
+            }
+
+            for (auto &th : ths)
+                th.detach();
+        }
+
+        result += double(1 / intermediateResult);
+    }
+
+    string message = "Result: " + to_string(result);
+
+    logger.printTrace(message);
+
+    cout << result << endl;
 }
 
 int main()
 {
     int x, n;
+    time_t start, end;
+    double seconds;
 
     Logger logger("Log.txt");
 
@@ -133,9 +188,25 @@ int main()
 
     cin >> x;
 
-    double res = calculateConsistently(x, n, logger);
+    time(&start);
 
-    cout << res;
+    calculateConsistently(x, n, logger);
+
+    time(&end);
+
+    seconds = difftime(end, start);
+
+    cout << "Consistently seconds " << seconds << endl;
+
+    time(&start);
+
+    calculateParallel(x, n, logger);
+
+    time(&end);
+
+    seconds = difftime(end, start);
+
+    cout << "Parallel seconds " << seconds << endl;
 
     return 0;
 }
