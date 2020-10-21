@@ -1,6 +1,7 @@
 #include <regex>
 #include <array>
 #include <ctime>
+#include <vector>
 #include <math.h>
 #include <fstream>
 #include <iostream>
@@ -8,6 +9,8 @@
 #include <time.h>
 
 using namespace std;
+
+const int MAX_CPU_COUNT = 4;
 
 class Logger
 {
@@ -84,8 +87,6 @@ string Logger::generateMessage(const string &message, const string &prior) const
     return str;
 }
 
-const int MAX_CPU_COUNT = 4;
-
 double calculateFunc(int &x, int &i, int &j)
 {
     return (j + pow(x + j, 1 / 7)) / (2 * i * j - 1);
@@ -112,8 +113,6 @@ void calculateConsistently(int &x, int &n, Logger logger)
     string message = "Result: " + to_string(result);
 
     logger.printTrace(message);
-
-    cout << result << endl;
 }
 
 void calculateParallel(int &x, int &n, Logger logger)
@@ -140,11 +139,11 @@ void calculateParallel(int &x, int &n, Logger logger)
 
             // cout << loopCount << endl;
 
-            std::vector<std::thread> ths;
+            vector<thread> ths;
 
             for (int k = 0; k < loopCount; k++)
             {
-                ths.push_back(std::thread([&intermediateResult, &x, &i, &j]() {
+                ths.push_back(thread([&intermediateResult, &x, &i, &j]() {
                     double resPart = calculateFunc(x, i, j);
 
                     intermediateResult += resPart;
@@ -168,8 +167,6 @@ void calculateParallel(int &x, int &n, Logger logger)
     string message = "Result: " + to_string(result);
 
     logger.printTrace(message);
-
-    cout << result << endl;
 }
 
 int main()
@@ -180,12 +177,10 @@ int main()
 
     Logger logger("Log.txt");
 
-    cout << "Input n:" << endl;
-
+    cout << "Input n: ";
     cin >> n;
 
-    cout << "Input x:" << endl;
-
+    cout << "Input x: ";
     cin >> x;
 
     time(&start);
@@ -196,7 +191,7 @@ int main()
 
     seconds = difftime(end, start);
 
-    cout << "Consistently seconds " << seconds << endl;
+    cout << "Consistently seconds: " << seconds << endl;
 
     time(&start);
 
@@ -206,7 +201,7 @@ int main()
 
     seconds = difftime(end, start);
 
-    cout << "Parallel seconds " << seconds << endl;
+    cout << "Parallel seconds: " << seconds << endl;
 
     return 0;
 }
