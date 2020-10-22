@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const int MAX_CPU_COUNT = 4;
+int MAX_CPU_COUNT = 4;
 
 class Logger
 {
@@ -86,15 +86,28 @@ string Logger::generateMessage(const string &message, const string &prior) const
 
     return str;
 }
+int calculatePercentage(int &currentIteration, int &allIterations, int &prevInPercents)
+{
+    int percentage = 100 * currentIteration / allIterations;
+    int inPercents = ((100 * currentIteration / allIterations) / 5) * 5;
+
+    if (inPercents > prevInPercents)
+    {
+        cout << inPercents << "% ";
+    }
+
+    return inPercents;
+}
 
 double calculateFunc(int &x, int &i, int j)
 {
     return (j + pow(x + j, 1 / 7)) / (2 * i * j - 1);
 }
 
-void calculateConsistently(int &x, int &n, Logger logger)
+void calculateConsistently(int &x, int &n, Logger &logger)
 {
     double result;
+    int prevInPercents = -1;
 
     for (int i = 1; i <= n; i++)
     {
@@ -108,17 +121,21 @@ void calculateConsistently(int &x, int &n, Logger logger)
         }
 
         result += double(1 / intermediateResult);
+
+        prevInPercents = calculatePercentage(i, n, prevInPercents);
     }
 
+    cout << endl;
     string message = "Result: " + to_string(result);
 
     logger.printTrace(message);
 }
 
-void calculateParallel(int &x, int &n, Logger logger)
+void calculateParallel(int &x, int &n, Logger &logger)
 {
     double result;
-    int loopCount;
+    int loopCount, prevInPercents = -1;
+    ;
 
     for (int i = 1; i <= n; i++)
     {
@@ -154,18 +171,35 @@ void calculateParallel(int &x, int &n, Logger logger)
         }
 
         result += double(1 / intermediateResult);
+
+        prevInPercents = calculatePercentage(i, n, prevInPercents);
     }
 
+    cout << endl;
     string message = "Result: " + to_string(result);
 
     logger.printTrace(message);
 }
 
+double timingFunc(void(func)(int &x, int &n, Logger &logger), int &x, int &n, Logger &logger)
+{
+    time_t start, end;
+
+    start = clock();
+
+    func(x, n, logger);
+
+    end = clock();
+
+    double milliseconds = difftime(end, start);
+
+    return milliseconds;
+}
 int main()
 {
     int x, n;
     time_t start, end;
-    double seconds;
+    double parallelTime, consistentlyTime;
 
     Logger logger("Log.txt");
 
@@ -175,25 +209,19 @@ int main()
     cout << "Input x: ";
     cin >> x;
 
-    start = clock();
+    consistentlyTime = timingFunc(calculateConsistently, x, n, logger);
+    cout << "Consistently milliseconds: " << consistentlyTime << "ms" << endl;
 
-    calculateConsistently(x, n, logger);
+    parallelTime = timingFunc(calculateParallel, x, n, logger);
+    cout << "Four parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    end = clock();
+    MAX_CPU_COUNT = 3;
+    parallelTime = timingFunc(calculateParallel, x, n, logger);
+    cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    seconds = difftime(end, start);
-
-    cout << "Consistently milliseconds: " << seconds << "ms" << endl;
-
-    start = clock();
-
-    calculateParallel(x, n, logger);
-
-    end = clock();
-
-    seconds = difftime(end, start);
-
-    cout << "Parallel milliseconds: " << seconds << "ms" << endl;
+    MAX_CPU_COUNT = 2;
+    parallelTime = timingFunc(calculateParallel, x, n, logger);
+    cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
     return 0;
 }
