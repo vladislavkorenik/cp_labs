@@ -99,7 +99,7 @@ int calculatePercentage(int &currentIteration, int &allIterations, int &prevInPe
     return inPercents;
 }
 
-double calculateFunc(int &x, int &i, int j)
+double calculateFunc(int &x, int i, int &j)
 {
     return (j + pow(x + j, 1 / 7)) / (2 * i * j - 1);
 }
@@ -119,7 +119,6 @@ void calculateConsistently(int &x, int &n, Logger &logger)
 
             intermediateResult += resPart;
         }
-
         result += double(1 / intermediateResult);
 
         prevInPercents = calculatePercentage(i, n, prevInPercents);
@@ -137,42 +136,40 @@ void calculateParallel(int &x, int &n, Logger &logger)
     int loopCount, prevInPercents = -1;
     ;
 
-    for (int i = 1; i <= n; i++)
+    for (int i = 1; i <= n;)
     {
         double intermediateResult;
-        int j = i;
-
-        while (j <= n)
+        if (n - i >= MAX_CPU_COUNT)
         {
-            if (n - j >= MAX_CPU_COUNT)
-            {
-                loopCount = MAX_CPU_COUNT;
-            }
-            else
-            {
-                loopCount = n - j;
-            }
+            loopCount = MAX_CPU_COUNT;
+        }
+        else
+        {
+            loopCount = n - i;
+        }
 
-            vector<thread> ths;
+        vector<thread> ths;
 
-            for (int k = 0; k <= loopCount; k++)
-            {
-                ths.push_back(thread([&intermediateResult, j, &x, &i]() {
+        for (int k = 0; k <= loopCount; k++, i++)
+        {
+            ths.push_back(thread([&intermediateResult, &result, &n, &x, i]() {
+                int j = i;
+
+                while (j <= n)
+                {
                     double resPart = calculateFunc(x, i, j);
 
                     intermediateResult += resPart;
-                }));
+                    j++;
+                }
+                result += double(1 / intermediateResult);
+            }));
 
-                j++;
-            }
-
-            for (auto &th : ths)
-                th.join();
+            prevInPercents = calculatePercentage(i, n, prevInPercents);
         }
 
-        result += double(1 / intermediateResult);
-
-        prevInPercents = calculatePercentage(i, n, prevInPercents);
+        for (auto &th : ths)
+            th.join();
     }
 
     cout << endl;
@@ -215,13 +212,13 @@ int main()
     parallelTime = timingFunc(calculateParallel, x, n, logger);
     cout << "Four parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    MAX_CPU_COUNT = 3;
-    parallelTime = timingFunc(calculateParallel, x, n, logger);
-    cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
+    // MAX_CPU_COUNT = 3;
+    // parallelTime = timingFunc(calculateParallel, x, n, logger);
+    // cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    MAX_CPU_COUNT = 2;
-    parallelTime = timingFunc(calculateParallel, x, n, logger);
-    cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
+    // MAX_CPU_COUNT = 2;
+    // parallelTime = timingFunc(calculateParallel, x, n, logger);
+    // cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
     return 0;
 }
