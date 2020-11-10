@@ -111,7 +111,7 @@ void calculateConsistently(int &x, int &n, Logger &logger)
 
     for (int i = 1; i <= n; i++)
     {
-        double intermediateResult;
+        double intermediateResult = 0.0;
 
         for (int j = i; j <= n; j++)
         {
@@ -133,12 +133,11 @@ void calculateConsistently(int &x, int &n, Logger &logger)
 void calculateParallel(int &x, int &n, Logger &logger)
 {
     double result;
+    vector<double> arrResult;
     int loopCount, prevInPercents = -1;
-    ;
 
     for (int i = 1; i <= n;)
     {
-        double intermediateResult;
         if (n - i >= MAX_CPU_COUNT)
         {
             loopCount = MAX_CPU_COUNT;
@@ -152,8 +151,9 @@ void calculateParallel(int &x, int &n, Logger &logger)
 
         for (int k = 0; k <= loopCount; k++, i++)
         {
-            ths.push_back(thread([&intermediateResult, &result, &n, &x, i]() {
+            ths.push_back(thread([&result, &n, &x, i]() {
                 int j = i;
+                double intermediateResult;
 
                 while (j <= n)
                 {
