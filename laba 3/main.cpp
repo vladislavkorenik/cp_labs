@@ -7,8 +7,10 @@
 #include <iostream>
 #include <thread>
 #include <time.h>
+#include <mutex>
 
 using namespace std;
+mutex resultGuard;
 
 int MAX_CPU_COUNT = 4;
 
@@ -86,7 +88,7 @@ string Logger::generateMessage(const string &message, const string &prior) const
 
     return str;
 }
-int calculatePercentage(int &currentIteration, int &allIterations, int &prevInPercents)
+int calculatePercentage(int currentIteration, int &allIterations, int &prevInPercents)
 {
     int percentage = 100 * currentIteration / allIterations;
     int inPercents = ((100 * currentIteration / allIterations) / 5) * 5;
@@ -106,7 +108,7 @@ double calculateFunc(int &x, int i, int &j)
 
 void calculateConsistently(int &x, int &n, Logger &logger)
 {
-    double result;
+    double result = 0.0;
     int prevInPercents = -1;
 
     for (int i = 1; i <= n; i++)
@@ -132,45 +134,50 @@ void calculateConsistently(int &x, int &n, Logger &logger)
 
 void calculateParallel(int &x, int &n, Logger &logger)
 {
-    double result;
-    vector<double> arrResult;
-    int loopCount, prevInPercents = -1;
+    double result = 0.0;
+    int prevInPercents = -1, i = 1, iterStep = n / MAX_CPU_COUNT, threadNum = MAX_CPU_COUNT;
 
-    for (int i = 1; i <= n;)
+    if (n / MAX_CPU_COUNT < 0)
     {
-        if (n - i >= MAX_CPU_COUNT)
-        {
-            loopCount = MAX_CPU_COUNT;
-        }
-        else
-        {
-            loopCount = n - i;
-        }
+        iterStep = 1;
+        threadNum = n;
+    }
 
-        vector<thread> ths;
+    vector<thread> ths;
 
-        for (int k = 0; k <= loopCount; k++, i++)
+    for (int k = 1; k <= threadNum; k++, i += iterStep)
+    {
+        int length = i + iterStep;
+
+        if (k == threadNum)
         {
-            ths.push_back(thread([&result, &n, &x, i]() {
-                int j = i;
-                double intermediateResult;
+            length = n + 1;
+        }
+        ths.push_back(thread([&result, &n, &x, i, length, &prevInPercents]() {
+            for (int iC = i; iC < length; iC++)
+            {
+                int j = iC;
+                double intermediateResult = 0.0;
 
                 while (j <= n)
                 {
-                    double resPart = calculateFunc(x, i, j);
+                    double resPart = calculateFunc(x, iC, j);
 
                     intermediateResult += resPart;
                     j++;
                 }
+
+                resultGuard.lock();
                 result += double(1 / intermediateResult);
-            }));
+                resultGuard.unlock();
+            }
+        }));
 
-            prevInPercents = calculatePercentage(i, n, prevInPercents);
-        }
-
-        for (auto &th : ths)
-            th.join();
+        prevInPercents = calculatePercentage(k, threadNum, prevInPercents);
     }
+
+    for (auto &&th : ths)
+        th.join();
 
     cout << endl;
     string message = "Result: " + to_string(result);
@@ -212,13 +219,13 @@ int main()
     parallelTime = timingFunc(calculateParallel, x, n, logger);
     cout << "Four parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    // MAX_CPU_COUNT = 3;
-    // parallelTime = timingFunc(calculateParallel, x, n, logger);
-    // cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
+    MAX_CPU_COUNT = 3;
+    parallelTime = timingFunc(calculateParallel, x, n, logger);
+    cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    // MAX_CPU_COUNT = 2;
-    // parallelTime = timingFunc(calculateParallel, x, n, logger);
-    // cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
+    MAX_CPU_COUNT = 2;
+    parallelTime = timingFunc(calculateParallel, x, n, logger);
+    cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
     return 0;
 }
