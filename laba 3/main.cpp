@@ -172,8 +172,11 @@ void calculateParallel(int &x, int &n, Logger &logger)
                 resultGuard.unlock();
             }
         }));
+    }
 
-        prevInPercents = calculatePercentage(k, threadNum, prevInPercents);
+    for (int c = 1; c <= n; c++)
+    {
+        prevInPercents = calculatePercentage(c, n, prevInPercents);
     }
 
     for (auto &&th : ths)
