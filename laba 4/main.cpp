@@ -86,7 +86,7 @@ string Logger::generateMessage(const string &message, const string &prior) const
 
     return str;
 }
-int calculatePercentage(int currentIteration, int &allIterations, int &prevInPercents)
+int calculatePercentage(int &currentIteration, int allIterations, int &prevInPercents)
 {
     int percentage = 100 * currentIteration / allIterations;
     int inPercents = ((100 * currentIteration / allIterations) / 5) * 5;
@@ -140,7 +140,7 @@ void calculateParallel(int &x, int &n, Logger &logger)
         threadNum = n;
     }
 
-#pragma omp parallel for private(i) lastprivate(prevInPercents) num_threads(threadNum)
+#pragma omp parallel for private(i) num_threads(threadNum)
     for (i = 1; i <= n; i++)
     {
         double intermediateResult = 0.0;
@@ -154,6 +154,11 @@ void calculateParallel(int &x, int &n, Logger &logger)
 
 #pragma omp atomic
         result += double(1 / intermediateResult);
+    }
+
+    for (int c = 1; c <= n; c++)
+    {
+        prevInPercents = calculatePercentage(c, n, prevInPercents);
     }
 
     cout << endl;
