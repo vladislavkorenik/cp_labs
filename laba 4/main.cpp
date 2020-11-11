@@ -5,12 +5,10 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
-#include <thread>
 #include <time.h>
-#include <mutex>
+#include <omp.h>
 
 using namespace std;
-mutex resultGuard;
 
 int MAX_CPU_COUNT = 4;
 
@@ -135,49 +133,28 @@ void calculateConsistently(int &x, int &n, Logger &logger)
 void calculateParallel(int &x, int &n, Logger &logger)
 {
     double result = 0.0;
-    int prevInPercents = -1, i = 1, iterStep = n / MAX_CPU_COUNT, threadNum = MAX_CPU_COUNT;
+    int prevInPercents = -1, i = 1, threadNum = MAX_CPU_COUNT;
 
     if (n / MAX_CPU_COUNT < 0)
     {
-        iterStep = 1;
         threadNum = n;
     }
 
-    vector<thread> ths;
-
-    for (int k = 1; k <= threadNum; k++, i += iterStep)
+#pragma omp parallel for private(i) lastprivate(prevInPercents) num_threads(threadNum)
+    for (i = 1; i <= n; i++)
     {
-        int length = i + iterStep;
+        double intermediateResult = 0.0;
 
-        if (k == threadNum)
+        for (int j = i; j <= n; j++)
         {
-            length = n + 1;
+            double resPart = calculateFunc(x, i, j);
+
+            intermediateResult += resPart;
         }
-        ths.push_back(thread([&result, &n, &x, i, length, &prevInPercents]() {
-            for (int iC = i; iC < length; iC++)
-            {
-                int j = iC;
-                double intermediateResult = 0.0;
 
-                while (j <= n)
-                {
-                    double resPart = calculateFunc(x, iC, j);
-
-                    intermediateResult += resPart;
-                    j++;
-                }
-
-                resultGuard.lock();
-                result += double(1 / intermediateResult);
-                resultGuard.unlock();
-            }
-        }));
-
-        prevInPercents = calculatePercentage(k, threadNum, prevInPercents);
+#pragma omp atomic
+        result += double(1 / intermediateResult);
     }
-
-    for (auto &&th : ths)
-        th.join();
 
     cout << endl;
     string message = "Result: " + to_string(result);
@@ -219,13 +196,13 @@ int main()
     parallelTime = timingFunc(calculateParallel, x, n, logger);
     cout << "Four parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    MAX_CPU_COUNT = 3;
-    parallelTime = timingFunc(calculateParallel, x, n, logger);
-    cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
+    // MAX_CPU_COUNT = 3;
+    // parallelTime = timingFunc(calculateParallel, x, n, logger);
+    // cout << "Three parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
-    MAX_CPU_COUNT = 2;
-    parallelTime = timingFunc(calculateParallel, x, n, logger);
-    cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
+    // MAX_CPU_COUNT = 2;
+    // parallelTime = timingFunc(calculateParallel, x, n, logger);
+    // cout << "Two parallel threads milliseconds: " << parallelTime << "ms" << endl;
 
     return 0;
 }
