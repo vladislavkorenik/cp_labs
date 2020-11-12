@@ -7,10 +7,8 @@
 #include <iostream>
 #include <thread>
 #include <time.h>
-#include <mutex>
 
 using namespace std;
-mutex resultGuard;
 
 int MAX_CPU_COUNT = 4;
 
@@ -135,6 +133,7 @@ void calculateConsistently(int &x, int &n, Logger &logger)
 void calculateParallel(int &x, int &n, Logger &logger)
 {
     double result = 0.0;
+    array<double, 4> resultArray = {0, 0, 0, 0};
     int prevInPercents = -1, i = 1, iterStep = n / MAX_CPU_COUNT, threadNum = MAX_CPU_COUNT;
 
     if (n / MAX_CPU_COUNT < 0)
@@ -145,15 +144,15 @@ void calculateParallel(int &x, int &n, Logger &logger)
 
     vector<thread> ths;
 
-    for (int k = 1; k <= threadNum; k++, i += iterStep)
+    for (int k = 0; k < threadNum; k++, i += iterStep)
     {
         int length = i + iterStep;
 
-        if (k == threadNum)
+        if (k + 1 == threadNum)
         {
             length = n + 1;
         }
-        ths.push_back(thread([&result, &n, &x, i, length, &prevInPercents]() {
+        ths.push_back(thread([&result, &n, &x, i, length, k, &resultArray]() {
             for (int iC = i; iC < length; iC++)
             {
                 int j = iC;
@@ -167,9 +166,7 @@ void calculateParallel(int &x, int &n, Logger &logger)
                     j++;
                 }
 
-                resultGuard.lock();
-                result += double(1 / intermediateResult);
-                resultGuard.unlock();
+                resultArray[k] += double(1 / intermediateResult);
             }
         }));
     }
@@ -181,6 +178,9 @@ void calculateParallel(int &x, int &n, Logger &logger)
 
     for (auto &&th : ths)
         th.join();
+
+    for (auto &n : resultArray)
+        result += n;
 
     cout << endl;
     string message = "Result: " + to_string(result);
