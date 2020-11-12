@@ -1,0 +1,1 @@
+cd "d:\cp_labs\laba 4\" && g++ main.cpp -fopenmp -o  main && "d:\cp_labs\laba 4\"main 
