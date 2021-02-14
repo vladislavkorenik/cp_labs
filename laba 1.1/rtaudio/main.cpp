@@ -5,6 +5,7 @@
 #include "RtAudio.h"
 
 SndfileHandle sndFile;
+typedef signed short RTAUDIO_TYPE;
 
 void create_file(const char *fname, const int format, const int channels, const int srate)
 {
@@ -16,7 +17,7 @@ void create_file(const char *fname, const int format, const int channels, const 
 int fplay(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
           double streamTime, RtAudioStreamStatus status, void *data)
 {
-  int16_t *buffer = (int16_t *)outputBuffer;
+  RTAUDIO_TYPE *buffer = (RTAUDIO_TYPE *)outputBuffer;
 
   if (status)
   {
@@ -31,7 +32,7 @@ int fplay(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
           double streamTime, RtAudioStreamStatus status, void *data)
 {
-  int16_t *inBuffer = (int16_t *)inputBuffer;
+  RTAUDIO_TYPE *inBuffer = (RTAUDIO_TYPE *)inputBuffer;
 
   unsigned int *bytes = (unsigned int *)data;
   memcpy(outputBuffer, inputBuffer, *bytes);
@@ -44,7 +45,7 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 int main()
 {
   const char *fname = "av.wav";
-  const int channels = 2;
+  const int channels = 5;
   const int srate = 48000;
 
   create_file(fname, SF_FORMAT_WAV | SF_FORMAT_PCM_16, channels, srate);
@@ -63,13 +64,13 @@ int main()
   RtAudio::StreamParameters inParam, outParam;
   inParam.deviceId = dac.getDefaultInputDevice();
   outParam.deviceId = dac.getDefaultOutputDevice();
-  inParam.nChannels = outParam.nChannels = sndFile.channels();
+  inParam.nChannels = outParam.nChannels = channels;
   inParam.firstChannel = 0;
   outParam.firstChannel = 0;
-  unsigned int sampleRate = sndFile.samplerate();
+  unsigned int sampleRate = srate;
   unsigned int bufferFrames = 1024;
 
-  unsigned int bufferBytes = bufferFrames * sndFile.channels() * 2;
+  unsigned int bufferBytes = bufferFrames * channels * sizeof(RTAUDIO_TYPE);
 
   try
   {
