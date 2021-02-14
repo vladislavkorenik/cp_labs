@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../RtAudio.h
+string
+-
+vector
+-
+stdexcept
+-
+iostream
+-
+windows.h
+-
+process.h
+-
+stdint.h
+-
+pthread.h
+-
+sys/time.h
+-
+sstream
+-
+CoreAudio/AudioHardware.h
+-
+
+../rtaudio_c.h
+
+D:/cp_labs/laba 1.1/rtaudio-master/tests/apinames.cpp
+RtAudio.h
+D:/cp_labs/laba 1.1/rtaudio-master/tests/RtAudio.h
+cctype
+-
+cstdlib
+-
+iostream
+-
+rtaudio_c.h
+D:/cp_labs/laba 1.1/rtaudio-master/tests/rtaudio_c.h
+
