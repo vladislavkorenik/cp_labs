@@ -7,6 +7,9 @@
 SndfileHandle sndFile;
 typedef signed short RTAUDIO_TYPE;
 
+float gain = 1;
+float step = 0.1;
+
 void create_file(const char *fname, const int format, const int channels, const int srate)
 {
   SndfileHandle file;
@@ -14,39 +17,44 @@ void create_file(const char *fname, const int format, const int channels, const 
   sndFile = SndfileHandle(fname, SFM_WRITE, format, channels, srate);
 }
 
-int fplay(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-          double streamTime, RtAudioStreamStatus status, void *data)
+RTAUDIO_TYPE *amplifierSond(int nBufferFrames, RTAUDIO_TYPE *bufferBytes)
 {
-  RTAUDIO_TYPE *buffer = (RTAUDIO_TYPE *)outputBuffer;
+  RTAUDIO_TYPE *buffer = bufferBytes;
 
-  if (status)
+  for (int i = 0; i <= nBufferFrames * sndFile.channels(); i++)
   {
-    std::cout << "Stream underflow detected!" << std::endl;
+    buffer[i] *= gain;
   }
 
-  sndFile.read(buffer, nBufferFrames * sndFile.channels());
-
-  return 0;
+  return buffer;
 }
 
 int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
           double streamTime, RtAudioStreamStatus status, void *data)
 {
   RTAUDIO_TYPE *inBuffer = (RTAUDIO_TYPE *)inputBuffer;
-
   unsigned int *bytes = (unsigned int *)data;
-  memcpy(outputBuffer, inputBuffer, *bytes);
+  memcpy(outputBuffer, amplifierSond((int)nBufferFrames, inBuffer), *bytes);
   memset(inputBuffer, 0, sizeof(inBuffer));
 
-  sndFile.write(inBuffer, nBufferFrames * sndFile.channels());
+  sndFile.write(amplifierSond((int)nBufferFrames, inBuffer), nBufferFrames * sndFile.channels());
   return 0;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-  const char *fname = "av.wav";
-  const int channels = 5;
-  const int srate = 48000;
+  int channels = 2, srate = 48000, iOffset = 0, oOffset = 0;
+
+  RtAudio dac;
+  if (dac.getDeviceCount() < 1)
+  {
+    std::cout << "No audio devices found!" << std::endl;
+    exit(1);
+  }
+  if (argc > 1)
+    channels = (int)atoi(argv[1]);
+
+  const char *fname = "input.wav";
 
   create_file(fname, SF_FORMAT_WAV | SF_FORMAT_PCM_16, channels, srate);
 
@@ -54,7 +62,6 @@ int main()
   std::cout << "Channels: " << sndFile.channels() << std::endl;
   std::cout << "Samplerate " << sndFile.samplerate() << std::endl;
 
-  RtAudio dac;
   if (dac.getDeviceCount() < 1)
   {
     std::cout << "\nNo audio devices found!\n";
@@ -65,8 +72,8 @@ int main()
   inParam.deviceId = dac.getDefaultInputDevice();
   outParam.deviceId = dac.getDefaultOutputDevice();
   inParam.nChannels = outParam.nChannels = channels;
-  inParam.firstChannel = 0;
-  outParam.firstChannel = 0;
+  inParam.firstChannel = iOffset;
+  outParam.firstChannel = oOffset;
   unsigned int sampleRate = srate;
   unsigned int bufferFrames = 1024;
 
@@ -83,9 +90,60 @@ int main()
     return 0;
   }
 
-  char symbol;
-  std::cout << "\nRecording ... press <enter> to quit.\n";
-  std::cin.get(symbol);
+  int number = 0;
+  do
+  {
+    if (number == 0)
+    {
+      std::cout << "0. Show menu:" << std::endl;
+      std::cout << "1. Increase gain;" << std::endl;
+      std::cout << "2. Reduce gain;" << std::endl;
+      std::cout << "3. Change gain step:" << std::endl;
+      std::cout << "4. Stop and save;" << std::endl;
+    }
+    std::cin >> number;
+    if (number == 1)
+    {
+      gain += step;
+
+      if (gain > 1)
+      {
+        gain = 1;
+        std::cout << "Warning!. Maximum gain is 1" << std::endl;
+      }
+
+      std::cout << "Current gain: " << gain << std::endl;
+    }
+    else if (number == 2)
+    {
+      gain -= step;
+
+      if (gain < 0)
+      {
+        gain = 0;
+        std::cout << "Warning!. Minimum gain is 0" << std::endl;
+      }
+
+      std::cout << "Current gain: " << gain << std::endl;
+    }
+    else if (number == 3)
+    {
+      float newStep;
+      std::cout << "Enter new step: ";
+      std::cin >> newStep;
+
+      if (newStep > 1)
+      {
+        newStep = 1;
+        std::cout << "Warning!. Maximum step is 1" << std::endl;
+      }
+
+      step = newStep;
+      std::cout << "Current step: " << step << std::endl;
+    }
+
+  } while (number != 4);
+
   try
   {
     dac.stopStream();
