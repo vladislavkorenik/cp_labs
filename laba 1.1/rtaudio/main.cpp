@@ -17,7 +17,7 @@ void create_file(const char *fname, const int format, const int channels, const 
   sndFile = SndfileHandle(fname, SFM_WRITE, format, channels, srate);
 }
 
-RTAUDIO_TYPE *amplifierSond(int nBufferFrames, RTAUDIO_TYPE *bufferBytes)
+RTAUDIO_TYPE *amplifierSound(int nBufferFrames, RTAUDIO_TYPE *bufferBytes)
 {
   RTAUDIO_TYPE *buffer = bufferBytes;
 
@@ -34,16 +34,16 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 {
   RTAUDIO_TYPE *inBuffer = (RTAUDIO_TYPE *)inputBuffer;
   unsigned int *bytes = (unsigned int *)data;
-  memcpy(outputBuffer, amplifierSond((int)nBufferFrames, inBuffer), *bytes);
+  memcpy(outputBuffer, amplifierSound((int)nBufferFrames, inBuffer), *bytes);
   memset(inputBuffer, 0, sizeof(inBuffer));
 
-  sndFile.write(amplifierSond((int)nBufferFrames, inBuffer), nBufferFrames * sndFile.channels());
+  sndFile.write(amplifierSound((int)nBufferFrames, inBuffer), nBufferFrames * sndFile.channels());
   return 0;
 }
 
 int main(int argc, char *argv[])
 {
-  int channels = 2, srate = 48000, iOffset = 0, oOffset = 0;
+  int channels = 2, srate = 44100, iOffset = 0, oOffset = 0;
 
   RtAudio dac;
   if (dac.getDeviceCount() < 1)
@@ -61,12 +61,6 @@ int main(int argc, char *argv[])
   std::cout << "File format: " << sndFile.format() << std::endl;
   std::cout << "Channels: " << sndFile.channels() << std::endl;
   std::cout << "Samplerate " << sndFile.samplerate() << std::endl;
-
-  if (dac.getDeviceCount() < 1)
-  {
-    std::cout << "\nNo audio devices found!\n";
-    return 0;
-  }
 
   RtAudio::StreamParameters inParam, outParam;
   inParam.deviceId = dac.getDefaultInputDevice();
